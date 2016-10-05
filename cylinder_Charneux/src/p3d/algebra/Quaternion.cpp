@@ -389,11 +389,18 @@ void Quaternion::transform(Vector3 *u) const {
 }
 
 
+
 void Quaternion::setRotation(const Vector3 &v1,const Vector3 &v2) {
-  Quaternion q;
-  Vector3 a = v1.cross(v2);
-  this->set(sqrt(v1.length2() * v2.length2()) + v1.dot(v2),a);
-  this->normalize();
+   Quaternion q;
+   Vector3 a = v1.cross(v2);
+
+   if (a.length2()<0.000001 && v1.dot(v2)<0) { // 180 degrees rotation
+     this->set(0,Vector3(0,1,0));
+   }
+   else {
+     this->set(sqrt(v1.length2() * v2.length2()) + v1.dot(v2),a);
+     this->normalize();
+   }
 }
 
 void Quaternion::setIdentity() {

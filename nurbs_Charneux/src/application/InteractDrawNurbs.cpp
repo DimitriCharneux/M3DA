@@ -89,7 +89,12 @@ bool InteractDrawNurbs::computeCurve() {
    * - loop on indices of _draw (size = _drawNbPts) and update u (pre compute the step)
    *  - _nurbs->pointCurve(u) should give the point P(u)
    */
+    double u = _nurbs->startInterval(D_U);
 
+    for(int i=0; i<_drawNbPts; i++){
+        u = ((i * (_nurbs->endInterval(D_U) - _nurbs->startInterval(D_U))) / _drawNbPts) + _nurbs->startInterval(D_U);
+        _draw[i] = _nurbs->pointCurve(u);
+    }
 
     _computeNurbsRequest=false;
     return true;
@@ -390,10 +395,12 @@ void InteractDrawNurbs::drawBasis()
             *
             */
 
-            double u = _nurbs->degree(direction) + nbPoint +1;
+            double u0 = _nurbs->knot(direction, k);
+            double umax = _nurbs->knot(direction, k + _nurbs->degree(direction)+1);
 
             for(int i=0; i<nbPoint; i++){
-                toDraw.push_back(Vector3(u,_nurbs->evalNkp(direction,k,_nurbs->degree(direction),u),0));
+                double uTmp = ((double)i/(double)nbPoint) * (umax-u0) + u0;
+                toDraw.push_back(Vector3(uTmp,_nurbs->evalNkp(direction,k,_nurbs->degree(direction),uTmp),0));
             }
 
             // end TODO

@@ -128,7 +128,9 @@ Vector3 Nurbs::pointCurve(double u) {
  * - nbControl(D_U) : number of control points
  * - evalNkp(D_U,k,p,u) to eval basis function
  */
-
+    for(int k = 0; k<nbControl(D_U); k++){
+        result += evalNkp(D_U,k,degree(D_U),u) * control(k);
+    }
     return Vector3(result.x(),result.y(),result.z());
 }
 
@@ -174,6 +176,9 @@ void Nurbs::knotOpenUniform(EDirection direction) {
    *
    *
    */
+
+
+
 
 }
 
