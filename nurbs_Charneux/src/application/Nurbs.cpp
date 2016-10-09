@@ -60,21 +60,18 @@ double Nurbs::evalNkp(int k,int p,double u,std::vector<double> &knot) {
    */
     if(p == 0){
         if(u >= knot[k] && u<knot[k+1])
-            return 1.0;
+            result = 1.0;
         else
-            return 0;
+            result = 0;
     } else {
-        double uuk = u - knot[k];
-        double ukpuk = knot[k+p] - knot[k];
-        double upk1u = knot[k+p+1] - u;
-        double ukp1uk1 = knot[k+p+1] - knot[k+1];
-        if(uuk == 0 && ukpuk == 0 && upk1u == 0 && ukp1uk1 == 0)
-            return 0;
-        if(uuk == 0 && ukpuk == 0)
-            return (upk1u/ukp1uk1) * evalNkp(k+1, p-1, u, knot);
-        if(upk1u == 0 && ukp1uk1 == 0)
-            return (uuk/ukpuk) * evalNkp(k, p-1, u, knot);
-        return (uuk/ukpuk) * evalNkp(k, p-1, u, knot) + (upk1u/ukp1uk1) * evalNkp(k+1, p-1, u, knot);
+        double uuk = knot[k];
+        double ukpuk = knot[k+p];
+        double upk1u = knot[k+p+1];
+        double ukp1uk1 = knot[k+1];
+        if((ukpuk - uuk) != 0.0)
+            result += (u - uuk)/(ukpuk - uuk) * evalNkp(k, p-1, u, knot);
+        if((upk1u - ukp1uk1)!= 0.0)
+            result += (upk1u-u)/(upk1u-ukp1uk1) * evalNkp(k+1, p-1, u, knot);
     }
 
     return result;
@@ -145,6 +142,14 @@ Vector3 Nurbs::pointSurface(double u,double v) {
    * - evalNkp(D_U or D_V,k,p,t) to eval basis function in each direction
    */
 
+    for(int l = 0; l<nbControl(D_V); l++){
+        Vector4 pl = Vector4(0,0,0,0);
+        for(int k = 0; k<nbControl(D_U); k++){
+            pl += evalNkp(D_U, k, degree(D_U), u) * control(k,l);
+        }
+        result += evalNkp(D_V, l, degree(D_V), v) * pl;
+    }
+
     return result.project(); // divide by w
 }
 
@@ -169,34 +174,35 @@ bool Nurbs::checkNbKnot(EDirection direction) {
 void Nurbs::knotOpenUniform(EDirection direction) {
     _knot[direction].resize(nbControl(direction)+degree(direction)+1);
 
-
-    /* The first and the last knots have a multiplicity of degree
-   */
-    double deg = degree(direction);
-    for(int i = 0; i < _knot[direction].size(); i++){
-        if(i <= deg){
-            _knot[direction][i] = 0.0;
-        } else if(i >= _knot[direction].size() - deg - 1){
-            _knot[direction][i] = 1.0;
-        } else {
-            int tmp = _knot[direction].size() - ((deg +1)*2);
-            _knot[direction][i] = (double)(i - deg)/((double)(tmp)+1);
-        }
+    int cpt = 0;
+    for(int i = 0; i<degree(direction)+1; i++){
+        _knot[direction][cpt] = 0.0;
+        cpt++;
     }
-
-
-
+    for(int i = 1; i<nbControl(direction) - degree(direction); i++){
+        _knot[direction][cpt] = i * (1.0/(nbControl(direction) - degree(direction)));
+        cpt++;
+    }
+    for(int i = 0; i<degree(direction)+1; i++){
+        _knot[direction][cpt] = 1.0;
+        cpt++;
+    }
 }
 
 
 void Nurbs::knotBezier(EDirection direction) {
+    _degree[direction] = nbControl(direction)-1;
+    _knot[direction].resize(nbControl(direction)+degree(direction)+1);
 
-    /* TODO : define a bezier curve : degree = nbControl-1,
-   *
-   *
-   *
-   */
-
+    int cpt = 0;
+    for(int i = 0; i<degree(direction)+1; i++){
+        _knot[direction][cpt] = 0.0;
+        cpt++;
+    }
+    for(int i = 0; i<degree(direction)+1; i++){
+        _knot[direction][cpt] = 1.0;
+        cpt++;
+    }
 }
 
 void Nurbs::setCircle() {
@@ -204,7 +210,18 @@ void Nurbs::setCircle() {
    *
    */
     _control.clear();
+    _nbControl[D_U] = 7;
+    _degree[D_U] = 2;
 
+    _control.push_back(Vector4(0,0,0,1));
+    _control.push_back(Vector4(-1,0,0,1)*cos(60*(M_PI/180.0)));
+    _control.push_back(Vector4(-0.5,sqrt(3)/2,0,1));
+    _control.push_back(Vector4(0,sqrt(3),0,1)*cos(60*(M_PI/180.0)));
+    _control.push_back(Vector4(0.5,sqrt(3)/2,0,1));
+    _control.push_back(Vector4(1,0,0,1)*cos(60*(M_PI/180.0)));
+    _control.push_back(Vector4(0,0,0,1));
+
+    _knot[D_U] = {0.0,0.0,0.0,1.0/3.0,1.0/3.0,2.0/3.0,2.0/3.0,1.0,1.0,1.0};
 }
 
 

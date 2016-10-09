@@ -98,7 +98,7 @@ void SubdivSurface::computePointFace() {
     _pointFace.clear();
     for(int i = 0; i<_input->nbFace(); i++){
         Vector3 somme(0.0,0.0,0.0);
-        for(int j = 0; j < _input->nbVertexFace(i); i++){
+        for(int j = 0; j < _input->nbVertexFace(i); j++){
             somme = somme + _input->positionVertexFace(i, j);
         }
         _pointFace.push_back(somme / _input->nbVertexFace(i));
@@ -137,7 +137,23 @@ void SubdivSurface::computePointVertex() {
      * */
     _pointVertex.clear();
 
+    for(int i=0; i < _edgeOfVertex.size(); i++){
+        Vector3 sommeE(0.0,0.0,0.0);
+        Vector3 sommeF(0.0,0.0,0.0);
+        for(int j = 0; j < _edgeOfVertex[i].size(); j++){
+            sommeE = sommeE + _pointEdge[_edgeOfVertex[i][j]];
 
+            if(_edge[_edgeOfVertex[i][j]]._a == i)
+                sommeF += _pointFace[_edge[_edgeOfVertex[i][j]]._left];
+            else
+                sommeF += _pointFace[_edge[_edgeOfVertex[i][j]]._right];
+
+        }
+        Vector3 res = ((_edgeOfVertex[i].size()-2.0)/_edgeOfVertex[i].size()) * _input->positionMesh(i);
+        res = res + sommeE / (_edgeOfVertex[i].size()*_edgeOfVertex[i].size());
+        res = res + sommeF / (_edgeOfVertex[i].size()*_edgeOfVertex[i].size());
+        _pointVertex.push_back(res);
+    }
 }
 
 int SubdivSurface::findNextEdge(int i,int j) {
@@ -153,6 +169,73 @@ void SubdivSurface::buildMesh() {
    * - caution with the indexes (indexes of m are not the same that the ones for _input : track them).
    *
    */
+
+    for (unsigned i=0; i<_pointVertex.size(); i++){
+        m->addPositionMesh(_pointVertex[i]);
+    }
+
+    for (unsigned i=0; i<_pointFace.size(); i++){
+        m->addPositionMesh(_pointFace[i]);
+    }
+
+    for (unsigned i=0; i<_pointEdge.size(); i++){
+        m->addPositionMesh(_pointEdge[i]);
+    }
+
+
+    for(unsigned i=0; i<_pointVertex.size(); i++) {
+
+        for(unsigned j=0; j<_edgeOfVertex[i].size(); j++) {
+
+
+            int ip = i;
+            int ie1 = _pointVertex.size() + _pointFace.size() + _edgeOfVertex[i][j];
+            int iif = 0;
+
+            if(ip == _edge[_edgeOfVertex[i][j]]._a) {
+                iif = _pointVertex.size() + _edge[_edgeOfVertex[i][j]]._left;
+            } else {
+                iif = _pointVertex.size() + _edge[_edgeOfVertex[i][j]]._right;
+            }
+
+            int ie2 = 0;
+            for(int k=0; k<_edgeOfVertex[i].size(); k++) {
+
+                if(ip == _edge[_edgeOfVertex[i][j]]._a) {
+
+                    if(ip == _edge[_edgeOfVertex[i][k]]._a) {
+                        if(_edge[_edgeOfVertex[i][j]]._left == _edge[_edgeOfVertex[i][k]]._right) {
+                            ie2 = _pointVertex.size() + _pointFace.size() + _edgeOfVertex[i][k];
+                        }
+                    }
+
+                    if(ip == _edge[_edgeOfVertex[i][k]]._b) {
+                        if(_edge[_edgeOfVertex[i][j]]._left == _edge[_edgeOfVertex[i][k]]._left) {
+                            ie2 = _pointVertex.size() + _pointFace.size() + _edgeOfVertex[i][k];
+                        }
+                    }
+
+
+                } else {
+                    if(ip == _edge[_edgeOfVertex[i][k]]._a) {
+                        if(_edge[_edgeOfVertex[i][j]]._right == _edge[_edgeOfVertex[i][k]]._right) {
+                            ie2 = _pointVertex.size() + _pointFace.size() + _edgeOfVertex[i][k];
+                        }
+                    }
+
+                    if(ip == _edge[_edgeOfVertex[i][k]]._b) {
+                        if(_edge[_edgeOfVertex[i][j]]._right == _edge[_edgeOfVertex[i][k]]._left) {
+                            ie2 = _pointVertex.size() + _pointFace.size() + _edgeOfVertex[i][k];
+                        }
+                    }
+                }
+
+            }
+
+            m->addFaceMesh({ip, ie1, iif, ie2});
+        }
+    }
+
 
 
     /* end TODO */
