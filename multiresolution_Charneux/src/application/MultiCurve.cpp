@@ -147,15 +147,14 @@ void MultiCurve::analysisStep() {
    */
 
 
-    //de 1 a n-1
-    for(int i = 0; i<n-1; i++){
-        _currentCurve[i] = matriceA* _currentCurve[i+1];
-        _detail[i] = matriceB * _currentCurve[i+1];
-    }
-    // a n-
-    _currentCurve[n-1] = matriceA* _currentCurve[0];
-    _detail[n-1] = matriceB * _currentCurve[0];
+    //de 1 a n/2
+    for(int i = 0; i<n/2; i++){
+        coarse.push_back(-1.0/4.0 * _currentCurve[(2 * i)%n] + 3.0/4.0 * _currentCurve[(2*i+1)%n]
+                + 3.0/4.0 * _currentCurve[(2*i+2)%n] - -1.0/4.0 * _currentCurve[(2*i+3)%n] );
 
+        _detail[level].push_back(-1.0/4.0 * _currentCurve[(2*i)%n] - 3.0/4.0 * _currentCurve[(2*i+1)%n]
+                + 3.0/4.0 * _currentCurve[(2*i+2)%n] - -1.0/4.0 * _currentCurve[(2*i+3)%n] );
+    }
 
     /* end TODO
    */
