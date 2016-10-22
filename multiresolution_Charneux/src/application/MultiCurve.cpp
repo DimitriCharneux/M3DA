@@ -116,22 +116,26 @@ void MultiCurve::analysis() {
 
 
 void MultiCurve::synthesisStep() {
-    int n=_currentCurve.size();
-    int level=log2(n);
-    vector<Vector3> finer;
-    /* TODO : set the vector finer to represent the level+1 curve from the level curve
-   * use _currentCurve (contains the points of the current level) and _detail[level] (the detail coefficients).
-   */
-    finer.resize(n*2); // finer will contain next level
+  int n=_currentCurve.size();
+  int level=log2(n);
+  vector<Vector3> finer;
+  finer.resize(n*2);
+
+  finer[0] = 3./4. * (_currentCurve[n - 1] + _detail[level][n - 1]) + 1./4. * (_currentCurve[0] - _detail[level][0]);
+
+  finer[1] = 1./4. * (_currentCurve[n - 1] + _detail[level][n - 1]) + 3./4. * (_currentCurve[0] - _detail[level][0]);
 
 
+  for(int i = 1; i < n; i++) {
+      finer[i * 2] = 3./4. * (_currentCurve[i - 1] + _detail[level][i - 1])
+              + 1./4. * (_currentCurve[i] - _detail[level][i]);
 
-    /* end TODO
-   */
-    _currentCurve=finer; // _currentCurve is now the next level
+      finer[i * 2 + 1] = 1./4. * (_currentCurve[i - 1] + _detail[level][i - 1])
+              + 3./4. * (_currentCurve[i] - _detail[level][i]);
+  }
+
+  _currentCurve=finer;
 }
-
-
 
 
 void MultiCurve::analysisStep() {
@@ -139,26 +143,22 @@ void MultiCurve::analysisStep() {
     if (n<=1) return;
     int level=log2(n)-1;
     vector<Vector3> coarse;
-    coarse.resize(n/2); // coarse will contain the previous level
+    coarse.resize(n/2);
+    _detail[level].resize(n/2);
 
-
-    /* TODO : set the vector coarse and _detail[level] to represent the level curve from level+1
-   * use _currentCurve (contains the points of the current level+1)
-   */
-
-
-    //de 1 a n/2
     for(int i = 0; i<n/2; i++){
-        coarse.push_back(-1.0/4.0 * _currentCurve[(2 * i)%n] + 3.0/4.0 * _currentCurve[(2*i+1)%n]
-                + 3.0/4.0 * _currentCurve[(2*i+2)%n] - -1.0/4.0 * _currentCurve[(2*i+3)%n] );
+        coarse[i] = (-1.0/4.0 * _currentCurve[(2 * i)%n]
+                + 3.0/4.0 * _currentCurve[(2*i+1)%n]
+                + 3.0/4.0 * _currentCurve[(2*i+2)%n]
+                - 1.0/4.0 * _currentCurve[(2*i+3)%n] );
 
-        _detail[level].push_back(-1.0/4.0 * _currentCurve[(2*i)%n] - 3.0/4.0 * _currentCurve[(2*i+1)%n]
-                + 3.0/4.0 * _currentCurve[(2*i+2)%n] - -1.0/4.0 * _currentCurve[(2*i+3)%n] );
+        _detail[level][i] = (1.0/4.0 * _currentCurve[(2*i)%n]
+                - 3.0/4.0 * _currentCurve[(2*i+1)%n]
+                + 3.0/4.0 * _currentCurve[(2*i+2)%n]
+                - 1.0/4.0 * _currentCurve[(2*i+3)%n] );
     }
 
-    /* end TODO
-   */
-    _currentCurve=coarse; // _currentCurve is now the previous level
+    _currentCurve=coarse;
 }
 
 
