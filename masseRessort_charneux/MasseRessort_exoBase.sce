@@ -18,7 +18,7 @@ g=-9.81;
 
 // parametres temps
 dt = 0.005;
-T =  0.5;
+T =  0.1;
 
 
 
@@ -33,58 +33,21 @@ k_t=0;
 
 // vecteur des positions:
 X_t = zeros(2*numNoeuds,1);
-V_t = zeros(2*numNoeuds,1);
-
 
 for i=1:numNoeuds
      X_t([2*i-1 2*i]) = [noeuds(1,i) ; noeuds(2,i)];
 end
-lo = [];
-for i=1:numSegments
-    i1 = segments(1,i);
-    i2 = segments(2,i);
-    lo(i) = norm(X_t([2*i1-1  2*i1]) - X_t([2*i2-1  2*i2]));
-end
+
 
 
 for time=0:dt:T,
-    F_t = zeros(2*numNoeuds,1);
-
-    // mouvement de translation uniforme à modifier
-    //for i=1:numNoeuds
-    //    X_t([2*i]) = X_t([2*i]) +0.2;
-    //end
-    for i=1:numSegments
-        i1 = segments(1,i);
-        i2 = segments(2,i);
-        pos_a = X_t(2 * i1 -1 : 2 * i1);
-        pos_b = X_t(2 * i2 -1 : 2 * i2);
-        //l(s) = norm(pos_a - pos_b);
-
-        l = norm(pos_b - pos_a);
-        f = k * ( l - lo(i));
-        n = (pos_b - pos_a) / norm(pos_a - pos_b);
-        F_t(2 * i1 -1 : 2 * i1) = F_t(2 * i1 -1 : 2 * i1) + n*f
-        F_t(2 * i2 -1 : 2 * i2) = F_t(2 * i2 -1 : 2 * i2) - n*f 
-    end
 
     
-  
+
+    // mouvement de translation uniforme
     for i=1:numNoeuds
-        
-        acceleration = [F_t([2*i-1])/m ; g + F_t([2*i])/m];
-        if noeuds(1,i) == 5 then 
-            V_t([2*i-1]) = 0;
-            V_t([2*i]) = 0;
-        else
-            V_t([2*i-1 2*i]) = V_t([2*i-1 2*i]) + acceleration * dt;
-           
-        end
-        X_t([2*i-1 2*i]) = X_t([2*i-1 2*i]) + V_t([2*i-1 2*i]) * dt;
-        
+        X_t([2*i]) = X_t([2*i]) +0.2;
     end
-    
-    
     
     
         
@@ -120,6 +83,7 @@ end
   
 
   
+
 
 
 

@@ -17,6 +17,21 @@ function [value] = Fnl(dV)
     
     F_t = zeros(2*numNoeuds,1);
     
+    //dv = vt - vt-1
+    //at = dv/dt
+    //vt = vt-1 + dv
+    
+    
+    //xt = xt-1 + vt * dt
+    //xt = xt-1 + (vt-1+dv)*dt
+    
+    //m.at = mg + F(xt)
+    //m.dv/dt = mg + F[xt-1 + (vt-1 + dv) * dt]
+    
+    //trouver dv tel que
+    //m.dv/dt - mg - F[xt-1 + (vt-1 + dv) * dt] = 0
+    //utiliser fsolve(dv, equation)
+    
     // reecrire les equations de newton en implicite
 
     
