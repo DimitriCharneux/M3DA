@@ -10,14 +10,7 @@ global segments;
 global L0;
 global _MYDATA_;
 
-function [value] = Fnl(dV)
-    
-
-    numNoeuds = size(noeuds,2);  
-    
-    F_t = zeros(2*numNoeuds,1);
-    
-    //dv = vt - vt-1
+//dv = vt - vt-1
     //at = dv/dt
     //vt = vt-1 + dv
     
@@ -34,7 +27,20 @@ function [value] = Fnl(dV)
     
     // reecrire les equations de newton en implicite
 
+function [value] = Fnl(dV)
     
+
+    numNoeuds = size(noeuds,2);  
+    
+    F_t = zeros(2*numNoeuds,1);
+    for i=1:numNoeuds
+        if(noeuds(1,i == 5)
+            dV([2*i-1 2*i]) = [0;0];    
+        end
+    end
+    
+    X_t = _MYDATA_.X_t + (_MYDATA_.V_t + dV) * dt;
+    //a finir
     value = F_t;
     
     
@@ -110,7 +116,6 @@ for time=0:dt:T,
     _MYDATA_.V_t = V_t;
     _MYDATA_.X_t = X_t;
   
-
     // appel a la fonction de resolution de systeme non-lineaire sous scilab...
     [dV,F, info] = fsolve(dV, Fnl) 
     
