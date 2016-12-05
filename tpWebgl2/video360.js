@@ -24,6 +24,8 @@ var oldMouseX,oldMouseY;
 var mouseDown=false;
 
 var nbCount=0;
+var angle = 0.0;
+var nbElement = 0;
 
 
 /**
@@ -70,19 +72,139 @@ function mainLoop() {
 function init() {
     gl.clearColor(1,1,1,1);
     gl.enable(gl.DEPTH_TEST);
+    //triangleVAO = initTriangleVAO();
+    triangleVAO = initSphereVAO();
     
+    shader360 = initProgram("shader360");
+    texture360 = initTexture("texture360");
     gl.viewport(0,0,canvasGL.width,canvasGL.height);
+    
+    projection = new Mat4();
+    modelview = new Mat4();
+    projection.setFrustum(-0.1,0.1,-0.1,0.1,0.1,1000);
+}
+
+function initTriangleVAO(){
+	var position = [-0.5,0.5,0.0,0.5,-0.5,0.0,-0.7,-0.9,0.0];
+	
+	//--texture
+	var texture = [0.0,0.0,0.6,0.0,0.3,0.6];
+	//--texture
+	
+	var element = [0,1,2];
+	
+	var triangleBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(position), gl.STATIC_DRAW);
+	
+	//--texture
+	var textureBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texture), gl.STATIC_DRAW);
+	//--texture
+	
+	var triangleElementBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangleElementBuffer);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(element), gl.STATIC_DRAW);
+	
+	var vao = gl.createVertexArray();
+	gl.bindVertexArray(vao);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangleElementBuffer);
+	gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
+	gl.vertexAttribPointer(0,3,gl.FLOAT, gl.FALSE,0,0);
+	
+	//--texture
+	gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+	gl.vertexAttribPointer(1,2,gl.FLOAT, gl.FALSE,0,0);
+	//--texture
+
+	gl.enableVertexAttribArray(0);
+	gl.enableVertexAttribArray(1);
+
+	gl.bindVertexArray(null);
+	nbElement = 3;
+	return vao;
 }
 
 function initSphereVAO() {
-    var vao=gl.createVertexArray();
-    gl.bindVertexArray(vao);
+    var position = new Array();
+	
+	var texture = new Array();
+	
+	var element = new Array();
+	
+	var nbSlice=20;
+    var nbStack=20;
+
+    var cptSlice = 0, cptStack = 0;
+    for(var i=0; i<=nbStack; i++){
+        cptSlice = 0;
+        for(var j=0; j<=nbSlice; j++){
+            position.push(Math.cos(cptSlice) * Math.sin(cptStack));
+            position.push(Math.cos(cptStack));
+            position.push(Math.sin(cptSlice) * Math.sin(cptStack));
 
 
-    gl.bindVertexArray(null);
-    
-    return vao;
+            texture.push(1 - (cptSlice / (2*Math.PI)));
+            texture.push(1 - (cptStack/Math.PI));
 
+            cptSlice += (2*Math.PI)/nbSlice;
+        }
+        cptStack += Math.PI/(nbStack-1);
+    }
+	nbElement = 0 ;
+    var bg, bd, hg, hd;
+    for(var i = 0; i<nbStack; i++){
+        for(var j = 0; j<nbSlice; j++){
+            bg = j + i*nbSlice;
+            bd = j+1 + i*nbSlice;
+            hg = bg + nbSlice +1;
+            hd = bd + nbSlice +1;
+
+
+            element.push(hg);
+            element.push(bg);
+            element.push(bd);
+            element.push(bd);
+            element.push(hd);
+            element.push(hg);
+            nbElement += 6;
+        }
+	}
+	
+	
+	
+	var triangleBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(position), gl.STATIC_DRAW);
+	
+	//--texture
+	var textureBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texture), gl.STATIC_DRAW);
+	//--texture
+	
+	var triangleElementBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangleElementBuffer);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(element), gl.STATIC_DRAW);
+	
+	var vao = gl.createVertexArray();
+	gl.bindVertexArray(vao);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangleElementBuffer);
+	gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
+	gl.vertexAttribPointer(0,3,gl.FLOAT, gl.FALSE,0,0);
+	
+	//--texture
+	gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+	gl.vertexAttribPointer(1,2,gl.FLOAT, gl.FALSE,0,0);
+	//--texture
+
+	gl.enableVertexAttribArray(0);
+	gl.enableVertexAttribArray(1);
+
+	gl.bindVertexArray(null);
+	
+	return vao;
 }
 
 
@@ -91,7 +213,15 @@ function initSphereVAO() {
  * **/
  
  function update() {
-
+	angle += 0.01;
+	modelview.setIdentity();
+	modelview.translate(0,0,-4);
+	modelview.rotateX(angle);
+	/*
+	var imageData=document.getElementById("video360");
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, texture360);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNISIGNED_BYTE, imageData);*/
  }
 
 
@@ -100,12 +230,24 @@ function initSphereVAO() {
  * draw
  * **/
 function draw() {
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	gl.useProgram(shader360);
+	
+	var textureLocation = gl.getUniformLocation(shader360, 'texture360');
+	var modelviewLocation = gl.getUniformLocation(shader360, 'modelview');
+	var projectionLocation = gl.getUniformLocation(shader360, 'projection');
+	
+	
+	gl.uniform1i(textureLocation, 0);
+	gl.uniformMatrix4fv(modelviewLocation, gl.FALSE, modelview.fv);
+	gl.uniformMatrix4fv(projectionLocation, gl.FALSE, projection.fv);
+	
+	
+	gl.bindVertexArray(triangleVAO);
+	gl.drawElements(gl.TRIANGLES,nbElement,gl.UNSIGNED_SHORT,0);
 
-
-
-  gl.useProgram(null);
-  gl.bindVertexArray(null);
+	gl.useProgram(null);
+	gl.bindVertexArray(null);
 
 }
 
