@@ -12,17 +12,6 @@
     <script src="video360.js"></script>
     <script src="p3d.js"></script>
 
-    <script id="shader360-fs" type="x-shader/x-fragment">#version 300 es
-        precision highp float;
-	
-		uniform sampler2D image;
-		in vec2 fTexCoord;
-		out vec4 fragColor;
-		void main(void){
-			fragColor = texture(image, fTexCoord);
-		}
-    </script>
-    
     <script id="shader360-vs" type="x-shader/x-vertex">#version 300 es
       
       	layout(location=0) in vec3 position;
@@ -40,12 +29,23 @@
 
     </script>
 
+    <script id="shader360-fs" type="x-shader/x-fragment">#version 300 es
+        precision highp float;
+	
+		uniform sampler2D image;
+		in vec2 fTexCoord;
+		out vec4 fragColor;
+		void main(void){
+			fragColor = texture(image, fTexCoord);
+		}
+    </script>
+    
 </head>
 
 
 <body>
 
-<video id="video360" src="repas2.webm" autoplay="true" loop="true" controls="true">
+<video id="myVideo" src="repas2.webm" autoplay="true" loop="true" controls="true">
 </video>
 
 <img id="texture360" src="EarthDay1024.jpg"/>

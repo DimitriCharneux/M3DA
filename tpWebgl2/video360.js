@@ -72,16 +72,17 @@ function mainLoop() {
 function init() {
     gl.clearColor(1,1,1,1);
     gl.enable(gl.DEPTH_TEST);
-    //triangleVAO = initTriangleVAO();
-    triangleVAO = initSphereVAO();
+    gl.viewport(0,0,canvasGL.width,canvasGL.height);
     
     shader360 = initProgram("shader360");
-    texture360 = initTexture("texture360");
-    gl.viewport(0,0,canvasGL.width,canvasGL.height);
+    texture360 = initTexture("myVideo");
     
     projection = new Mat4();
     modelview = new Mat4();
     projection.setFrustum(-0.1,0.1,-0.1,0.1,0.1,1000);
+    
+    //triangleVAO = initTriangleVAO();
+    triangleVAO = initSphereVAO();
 }
 
 function initTriangleVAO(){
@@ -145,8 +146,8 @@ function initSphereVAO() {
             position.push(Math.sin(cptSlice) * Math.sin(cptStack));
 
 
-            texture.push(1 - (cptSlice / (2*Math.PI)));
-            texture.push(1 - (cptStack/Math.PI));
+            texture.push(cptSlice / (2*Math.PI));
+            texture.push(cptStack/Math.PI);
 
             cptSlice += (2*Math.PI)/nbSlice;
         }
@@ -174,37 +175,33 @@ function initSphereVAO() {
 	
 	
 	
-	var triangleBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(position), gl.STATIC_DRAW);
-	
-	//--texture
-	var textureBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texture), gl.STATIC_DRAW);
-	//--texture
-	
-	var triangleElementBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangleElementBuffer);
-	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(element), gl.STATIC_DRAW);
-	
-	var vao = gl.createVertexArray();
-	gl.bindVertexArray(vao);
-	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangleElementBuffer);
-	gl.bindBuffer(gl.ARRAY_BUFFER, triangleBuffer);
-	gl.vertexAttribPointer(0,3,gl.FLOAT, gl.FALSE,0,0);
-	
-	//--texture
-	gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-	gl.vertexAttribPointer(1,2,gl.FLOAT, gl.FALSE,0,0);
-	//--texture
+  var sphereBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, sphereBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(position), gl.STATIC_DRAW);
 
-	gl.enableVertexAttribArray(0);
-	gl.enableVertexAttribArray(1);
+  var sphereTextureBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, sphereTextureBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texture), gl.STATIC_DRAW);
 
-	gl.bindVertexArray(null);
-	
-	return vao;
+  var sphereElementBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphereElementBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(element), gl.STATIC_DRAW);
+
+  var vao=gl.createVertexArray();
+  gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphereElementBuffer);
+
+  gl.enableVertexAttribArray(0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, sphereBuffer);
+  gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 0, 0);
+
+  gl.enableVertexAttribArray(1);
+  gl.bindBuffer(gl.ARRAY_BUFFER, sphereTextureBuffer);
+  gl.vertexAttribPointer(1, 2, gl.FLOAT, gl.FALSE, 0, 0);
+
+  gl.bindVertexArray(null);
+
+return vao;
 }
 
 
@@ -213,15 +210,14 @@ function initSphereVAO() {
  * **/
  
  function update() {
-	angle += 0.01;
+	//angle += 0.01;
 	modelview.setIdentity();
-	modelview.translate(0,0,-4);
-	modelview.rotateX(angle);
-	/*
-	var imageData=document.getElementById("video360");
+	//modelview.rotateX(angle);
+	
+	var imageData = document.getElementById("myVideo");
 	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, texture360);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNISIGNED_BYTE, imageData);*/
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, imageData);
  }
 
 
@@ -233,7 +229,7 @@ function draw() {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.useProgram(shader360);
 	
-	var textureLocation = gl.getUniformLocation(shader360, 'texture360');
+	var textureLocation = gl.getUniformLocation(shader360, 'image');
 	var modelviewLocation = gl.getUniformLocation(shader360, 'modelview');
 	var projectionLocation = gl.getUniformLocation(shader360, 'projection');
 	
