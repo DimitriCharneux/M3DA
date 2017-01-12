@@ -27,6 +27,12 @@ var nbCount=0;
 var angle = 0.0;
 var nbElement = 0;
 
+var moveFinish = true;
+var angleX = 0;
+var angleY = 0;
+var diffX = 0;
+var diffY = 0;
+
 
 /**
  * main, mainLoop
@@ -212,7 +218,16 @@ return vao;
  function update() {
 	//angle += 0.01;
 	modelview.setIdentity();
-	//modelview.rotateX(angle);
+	
+	if(moveFinish){
+		angleX += diffX * 0.02;
+		angleY += diffY * 0.02;
+	
+		moveFinish = false;
+	}
+	
+	modelview.rotateX(angleY);
+	modelview.rotateY(angleX);
 	
 	var imageData = document.getElementById("myVideo");
 	gl.activeTexture(gl.TEXTURE0);
@@ -335,7 +350,10 @@ function handleMouseMove(event) {
 	var mouseX = event.layerX-canvasGL.offsetLeft;
 	var mouseY = canvasGL.height-(event.layerY-canvasGL.offsetTop)-1.0;
 	
+  	diffX = mouseX - oldMouseX;
+  	diffY = mouseY - oldMouseY;
   
+  	moveFinish = true;
   
 	oldMouseX=mouseX;
 	oldMouseY=mouseY;
@@ -344,6 +362,8 @@ function handleMouseMove(event) {
 
 function handleMouseUp(event) {
 	mouseDown=false;	
+	diffX = 0;
+  	diffY = 0;
 }
 
 
